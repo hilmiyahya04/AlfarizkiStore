@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Events\Login;
 use App\Listeners\MigrateGuestCartOnLogin;
 use App\Models\CartItem;

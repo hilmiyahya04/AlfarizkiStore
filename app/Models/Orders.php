@@ -6,7 +6,7 @@ use App\Policies\product_order_track_historiesPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class orders extends Model
+class Orders extends Model
 {
     use HasFactory;
     protected $table = 'orders';

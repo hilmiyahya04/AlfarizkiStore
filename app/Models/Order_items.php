@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class order_items extends Model
+class Order_items extends Model
 {
     protected $table = 'order_items';
     protected $fillable = [

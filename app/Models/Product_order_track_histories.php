@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class product_order_track_histories extends Model
+class Product_order_track_histories extends Model
 {
     use HasFactory;
     protected $table = 'product_order_track_histories';
