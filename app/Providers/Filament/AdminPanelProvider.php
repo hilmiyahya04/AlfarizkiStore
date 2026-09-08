@@ -22,6 +22,10 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\BlogPostsChart;
 use App\Filament\Widgets\OrderStats;
+use App\Http\Responses\CustomLoginResponse;
+use App\Http\Responses\CustomRegistrationResponse;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
+use Filament\Auth\Http\Responses\Contracts\RegistrationResponse;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -34,12 +38,12 @@ class AdminPanelProvider extends PanelProvider
             // ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandName('Alfarizki')
             ->login()
-             ->globalSearch(false) 
-            ->databaseNotifications()
             ->registration()
+            ->globalSearch(false) 
+            ->databaseNotifications()
             ->sidebarCollapsibleOnDesktop()
             ->colors([
-                'primary' => '240, 240, 240',   
+            'primary' => '240, 240, 240',   
                 100 => '220, 220, 220',
                 200 => '180, 180, 180',
                 300 => '130, 130, 130',
@@ -62,10 +66,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             // ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
+                \App\Filament\Widgets\WelcomeBanner::class,
                 DashboardOverview::class,
                 OrderStats::class,
                 BlogPostsChart::class,
             ])
+
+            ->bootUsing(function () {
+                app()->bind(LoginResponse::class, CustomLoginResponse::class);
+                app()->bind(RegistrationResponse::class, CustomRegistrationResponse::class);
+            })
             
             ->middleware([
                 EncryptCookies::class,

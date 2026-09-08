@@ -6,9 +6,10 @@ use App\Models\product;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
-
+use App\Filament\Forms\Components\StarRating;
 
 class ProductReviewsForm
 {
@@ -29,16 +30,18 @@ class ProductReviewsForm
                     ->searchable()
                     ->required(),
 
-                // rating
-                Select::make('rating')
-                    ->options([
-                        5 => '⭐⭐⭐⭐⭐',
-                        4 => '⭐⭐⭐⭐',
-                        3 => '⭐⭐⭐',
-                        2 => '⭐⭐',
-                        1 => '⭐',
-                    ])
+                // rating pakai bintang interaktif
+                StarRating::make('rating')
+                    ->label('Rating')
+                    ->maxStars(5)
                     ->required(),
+
+                // komentar
+                Textarea::make('comment')
+                    ->label('Komentar')
+                    ->rows(3)
+                    ->maxLength(500)
+                    ->nullable(),
             ]);
     }
 }

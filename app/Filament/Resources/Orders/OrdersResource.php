@@ -53,7 +53,7 @@ class OrdersResource extends Resource
     if ($user) {
         if (!$user->hasRole('super_admin')) {
             $query->where('userId', $user->id)
-                ->whereIn('orderStatus', ['pending', 'paid', 'processed', 'shipped', 'completed', 'cancelled']);
+                ->whereIn('orderStatus', ['Sedang DiKemas', 'DiKirim', 'Selesai', 'Dibatalkan']);
         }
     }
 

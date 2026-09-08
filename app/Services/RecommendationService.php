@@ -165,6 +165,15 @@ class RecommendationService
         
        $topCodes = array_slice(array_keys($predictions), 0, 3);
 
+        return Product::whereIn('productCode', $topCodes)
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->get()
+        ->sortBy(function ($product) use ($topCodes) {
+            return array_search($product->productCode, $topCodes);
+        })
+        ->values();
+
         // Mengembalikan data produk yang sudah diurutkan berdasarkan skor tertinggi
         return Product::whereIn('productCode', $topCodes)
             ->get()

@@ -16,43 +16,19 @@ class OrdersController extends Controller
 {
     public function store(Request $request)
     {
-        // PESAN LANGSUNG DARI PRODUCT DETAIL
-        if ($request->product_id) {
+        $validated = $request->validate([
+            'recipient_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+            'street_address' => 'required|string',
+            'address_detail' => 'nullable|string',
+            'address_label' => 'nullable|string|max:50',
+            'payment_method' => 'required|string|in:COD,Transfer Bank',
+        ]);
 
-            $product = \App\Models\Product::findOrFail($request->product_id);
-
-            $order = orders::create([
-                'userId' => Auth::id(),
-                'orderDate' => now(),
-                'paymentMethod' => 'COD',
-                'orderStatus' => 'pending',
-                'id_pemesanan' => 'ORD-' . strtoupper(Str::random(8)),
-                'total_price' => $product->productPrice,
-            ]);
-
-            order_items::create([
-                'order_id' => $order->id,
-                'product_id' => $product->id,
-                'product_name' => $product->productName,
-                'price' => $product->productPrice,
-                'qty' => 1,
-                'subtotal' => $product->productPrice,
-            ]);
-
-            product_order_track_histories::create([
-                'orderId' => $order->id,
-                'status' => 'pending',
-                'keterangan' => 'Pesanan dibuat',
-                'tanggal' => now(),
-            ]);
-
-            // Kirim notifikasi ke semua admin
-            $this->notifyAdmins($order);
-
-            return redirect()->back()->with('success', 'Pesanan berhasil dibuat');
-        }
-
-        // CHECKOUT DARI CART
         $cart = CartItem::where('user_id', Auth::id())
             ->with('product')
             ->get();
@@ -69,13 +45,25 @@ class OrdersController extends Controller
             }
         }
 
+        // Simpan id produk pertama di cart, dipakai buat redirect setelah checkout
+        $redirectProductId = $cart->first()->product->id ?? null;
+
         $order = orders::create([
             'userId' => Auth::id(),
             'orderDate' => now(),
-            'paymentMethod' => 'COD',
+            'paymentMethod' => $validated['payment_method'],
             'orderStatus' => 'pending',
             'id_pemesanan' => 'ORD-' . strtoupper(Str::random(8)),
             'total_price' => $total,
+            'recipient_name' => $validated['recipient_name'],
+            'phone_number' => $validated['phone_number'],
+            'province' => $validated['province'],
+            'city' => $validated['city'],
+            'district' => $validated['district'],
+            'postal_code' => $validated['postal_code'],
+            'street_address' => $validated['street_address'],
+            'address_detail' => $validated['address_detail'] ?? null,
+            'address_label' => $validated['address_label'] ?? 'Rumah',
         ]);
 
         foreach ($cart as $item) {
@@ -104,9 +92,10 @@ class OrdersController extends Controller
         // Kirim notifikasi ke semua admin
         $this->notifyAdmins($order);
 
-        return redirect()->back()->with('success', 'Checkout berhasil');
+        return redirect()->back()
+            ->with('checkout_success', 'Pesanan Anda berhasil dibuat! Admin Toko Alfarizki akan segera memproses pesanan Anda.')
+            ->with('checkout_product_id', $redirectProductId);
     }
-
     // Kirim notifikasi ke semua user yang punya role super_admin
     private function notifyAdmins(orders $order)
     {

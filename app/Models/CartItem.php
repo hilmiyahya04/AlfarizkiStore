@@ -14,6 +14,7 @@ class CartItem extends Model
     protected $fillable = [
         'user_id',
         'product_id',
+        'product_variant_id',
         'quantity',
     ];
 
@@ -33,4 +34,10 @@ class CartItem extends Model
         // Pastikan nama model Anda adalah 'Product'
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
 }

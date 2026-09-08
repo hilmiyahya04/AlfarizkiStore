@@ -5,74 +5,70 @@ namespace App\Filament\Resources\ProductReviews\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\DeleteAction;
-use Illuminate\Support\Facades\Auth;
 
 class ProductReviewsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
-            ->recordUrl(null)
             ->columns([
-
                 TextColumn::make('user.name')
                     ->label('User')
                     ->sortable()
-                    ->searchable()
-                    ->hidden(fn() => !Auth::user()?->hasRole('super_admin')),
+                    ->searchable(),
 
-                TextColumn::make('productCode')
-                    ->label('Kode Produk')
+                TextColumn::make('product.productName')
+                    ->label('Produk')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('rating')
                     ->label('Rating')
-                    ->formatStateUsing(fn($state) => str_repeat('⭐', $state))
+                    ->formatStateUsing(fn ($state) => str_repeat('⭐', (int) $state))
                     ->sortable(),
 
+                TextColumn::make('comment')
+                    ->label('Komentar')
+                    ->limit(50)
+                    ->searchable(),
+
                 TextColumn::make('created_at')
-                    ->label('Tanggal Review')
-                    ->date()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
+                    ->label('Tanggal')
+                    ->dateTime('d M Y')
+                    ->sortable(),
             ])
-
             ->filters([
                 //
             ])
-
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
             ->actionsColumnLabel('Aksi')
             ->actions([
-
                 EditAction::make()
-                    ->hidden(fn() => !Auth::user()?->hasRole('super_admin'))
                     ->label('')
                     ->icon('heroicon-o-pencil-square')
                     ->color('primary')
                     ->size('sm')
-                    ->tooltip('Edit Review')
-                    ->modalHeading('Edit Review Produk')
+                    ->tooltip('Edit Produk')
+                    ->modalHeading('Edit Produk')
                     ->modalSubmitActionLabel('Simpan')
                     ->modalWidth('lg'),
 
                 DeleteAction::make()
-                    ->hidden(fn() => !Auth::user()?->hasRole('super_admin'))
                     ->label('')
                     ->icon('heroicon-o-trash')
                     ->color('primary')
                     ->size('sm')
-                    ->tooltip('Hapus Review'),
+                    ->tooltip('Delete Produk'),
             ])
-
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn() => !Auth::user()?->hasRole('super_admin')),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

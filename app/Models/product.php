@@ -35,4 +35,14 @@ class Product extends Model
     {
         return $this->belongsTo(categories::class, 'categoryId', 'id');
     }
+
+    public function variants()
+    {
+    return $this->hasMany(ProductVariant::class, 'productId');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(product_reviews::class, 'productCode', 'productCode');
+    }
 }

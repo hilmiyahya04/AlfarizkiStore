@@ -12,32 +12,31 @@ class CartController extends Controller
 {
     private function getCartItems()
     {
-        // Menggunakan Auth::check() secara eksplisit agar dikenali teks editor
         if (Auth::check()) {
-            $items = CartItem::where('user_id', Auth::id())->with('product')->get();
+            $items = CartItem::where('user_id', Auth::id())->with(['product', 'variant'])->get();
             $cart = [];
 
             foreach ($items as $item) {
                 if ($item->product) {
-                    $cart[$item->product_id] = [
+                    $key = $item->product_id . '_' . $item->product_variant_id;
+                    $cart[$key] = [
                         "id" => $item->product_id,
+                        "variant_id" => $item->product_variant_id,
                         "name" => $item->product->productName,
                         "price" => $item->product->productPrice,
                         "image" => $item->product->productImage1 ?? null,
-                        "quantity" => $item->quantity
+                        "size" => $item->variant?->size,
+                        "color" => $item->variant?->color,
+                        "quantity" => $item->quantity,
                     ];
                 }
             }
             return $cart;
         }
 
-        // Jika belum login, ambil dari cookie bernama 'guest_cart'
         return json_decode(request()->cookie('guest_cart'), true) ?? [];
     }
 
-    /**
-     * Helper internal untuk menyimpan perubahan keranjang (Cookie atau DB)
-     */
     private function saveCartItems($cart)
     {
         if (Auth::check()) {
@@ -46,60 +45,103 @@ class CartController extends Controller
             foreach ($cart as $productId => $item) {
                 CartItem::create([
                     'user_id' => $userId,
-                    'product_id' => $productId,
-                    'quantity' => $item['quantity']
+                    'product_id' => $item['id'],
+                    'product_variant_id' => $item['variant_id'],
+                    'quantity' => $item['quantity'],
                 ]);
             }
         } else {
-            // Jika belum login, simpan ke cookie browser (Awet selama 7 hari)
             Cookie::queue('guest_cart', json_encode($cart), 60 * 24 * 7);
         }
     }
 
     public function index()
     {
-        // Mengambil data keranjang saat ini (dari Cookie atau Database)
         $cart = $this->getCartItems();
 
-        // Mengirim data array $cart ke file blade bernama 'cart' (atau sesuaikan dengan file Anda)
-        return view('cart', compact('cart'));
+        $lastAddress = null;
+        if (Auth::check()) {
+            $lastAddress = \App\Models\orders::where('userId', Auth::id())
+                ->latest()
+                ->first();
+        }
+
+        // Ambil semua produk untuk dirender di Blade
+    $products = \App\Models\product::all();
+
+    // Kirim $products ke view
+    return view('cart', compact('cart', 'lastAddress', 'products'));
     }
 
-
-    public function add($id)
+    public function add(Request $request, $id)
     {
-        $product = product::findOrFail($id);
-        $cart = $this->getCartItems();
+        $product = Product::findOrFail($id);
+        $variantId = $request->product_variant_id;
 
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity']++;
+        // FIX: ambil qty dari input, minimal 1
+        $qty = (int) $request->input('quantity', 1);
+        if ($qty < 1) {
+            $qty = 1;
+        }
+
+        $cart = $this->getCartItems();
+        $key = $id . '_' . $variantId;
+
+        if (isset($cart[$key])) {
+            $cart[$key]['quantity'] += $qty; // FIX: tambah sesuai qty, bukan selalu +1
         } else {
-            $cart[$id] = [
-                "id" => $product->id,
-                "name" => $product->productName,
-                "price" => $product->productPrice,
-                "image" => $product->productImage1 ?? null,
-                "quantity" => 1
+            $cart[$key] = [
+                "id"         => $product->id,
+                "variant_id" => $variantId,
+                "name"       => $product->productName,
+                "price"      => $product->productPrice,
+                "image"      => $product->productImage1 ?? null,
+                "quantity"   => $qty, // FIX: pakai qty, bukan hardcode 1
             ];
         }
 
         $this->saveCartItems($cart);
 
-        return redirect()->back()->with('success', 'Produk berhasil ditambahkan ke keranjang');
+        if ($request->ajax()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Produk berhasil ditambahkan ke keranjang.'
+            ]);
+        }
+
+        if ($request->has('redirect_to_cart') || $request->input('redirect_to') === 'cart') {
+            return redirect()->route('cart.index')
+                ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+        }
+
+        return redirect()->back()
+            ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
 
     public function remove($id)
     {
+        $parts = explode('_', $id, 2);
+        $productId = $parts[0];
+        $variantId = (isset($parts[1]) && $parts[1] !== '') ? $parts[1] : null;
+
         if (Auth::check()) {
-            // Jika login, langsung hapus baris spesifik di database
-            CartItem::where('user_id', Auth::id())->where('product_id', $id)->delete();
+            $query = CartItem::where('user_id', Auth::id())
+                ->where('product_id', $productId);
+
+            if ($variantId === null) {
+                $query->whereNull('product_variant_id');
+            } else {
+                $query->where('product_variant_id', $variantId);
+            }
+
+            $query->delete();
         } else {
-            // Jika guest, hapus dari array cookie
             $cart = $this->getCartItems();
+
             if (isset($cart[$id])) {
                 unset($cart[$id]);
+                $this->saveCartItems($cart);
             }
-            $this->saveCartItems($cart);
         }
 
         return redirect()->back()->with('success', 'Item berhasil dihapus');

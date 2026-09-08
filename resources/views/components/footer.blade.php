@@ -1,6 +1,6 @@
 {{-- resources/views/components/footer.blade.php --}}
 
-<footer class="animate-fade-in-smooth w-full bg-black text-white">
+<footer class="animate-fade-in-smooth w-full bg-black text-white mt-12">
 
     <div id="Contact" class="mx-auto max-w-[1700px] px-8 md:px-16 py-24">
 

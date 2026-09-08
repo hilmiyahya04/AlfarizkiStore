@@ -5,6 +5,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
    <link rel="icon" type="image/png" href="{{ asset('assets/favicon.png') }}?v=1.0">
+   
 
     <title>@yield('title', 'Alfarizki – Beli Sepatu Impianmu')</title>
 
@@ -22,4 +23,5 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet"/>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>

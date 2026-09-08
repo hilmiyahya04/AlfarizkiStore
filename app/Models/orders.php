@@ -11,12 +11,21 @@ class orders extends Model
     use HasFactory;
     protected $table = 'orders';
     protected $fillable = [
-        'userId',
-        'orderDate',
-        'paymentMethod',
-        'orderStatus',
-        'id_pemesanan',
-        'total_price',
+    'userId',
+    'orderDate',
+    'paymentMethod',
+    'orderStatus',
+    'id_pemesanan',
+    'total_price',
+    'recipient_name',
+    'phone_number',
+    'province',
+    'city',
+    'district',
+    'postal_code',
+    'street_address',
+    'address_detail',
+    'address_label',
     ];
     public function items()
     {

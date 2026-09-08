@@ -42,6 +42,12 @@ class ProductsTable
                     ->label('Kategori')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('variants.size')
+                    ->label('Ukuran')
+                    ->searchable(),
+                TextColumn::make('variants.color')
+                    ->label('Warna')
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

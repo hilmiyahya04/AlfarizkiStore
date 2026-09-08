@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call((ShieldSeeder::class));
 
         Role::firstOrCreate(['name' => 'panel_user', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'name' => 'Test User',

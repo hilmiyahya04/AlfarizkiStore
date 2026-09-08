@@ -43,4 +43,11 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(product_reviews::class, 'userId');
     }
+
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            $user->assignRole('customer');
+        });
+    }
 }
